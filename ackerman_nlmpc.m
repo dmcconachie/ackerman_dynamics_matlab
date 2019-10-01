@@ -64,8 +64,8 @@ nlobj.States(5).Max = 20.0;
 
 nlobj.ManipulatedVariables(1).Name = 'F';
 nlobj.ManipulatedVariables(1).Units = 'Newtons';
-nlobj.ManipulatedVariables(1).Min = -400;
-nlobj.ManipulatedVariables(1).Max = 400;
+nlobj.ManipulatedVariables(1).Min = -40;
+nlobj.ManipulatedVariables(1).Max = 10;
 
 nlobj.ManipulatedVariables(2).Name = 'Steering Change';
 nlobj.ManipulatedVariables(2).Units = 'Radians / Second';
