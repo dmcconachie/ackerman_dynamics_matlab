@@ -1,5 +1,12 @@
 clc; clear;
 
+l = 1.0; % Wheelbase length
+w = 0.5; % Distance between wheels
+M = 1;
+M1 = M/2;
+M2 = M/2;
+dscale = 8; % used by se3_spline to define "curvyness" of generated reference splines
+
 nx = 5; % State dimension
 ny = 3; % Output dimension
 nu = 2; % Control dimension
@@ -48,13 +55,7 @@ nlobj.ManipulatedVariables(2).Units = 'Radians / Second';
 nlobj.Jacobian.StateFcn = @ackerman_state_jacobian;
 nlobj.Jacobian.OutputFcn = @(state, control, l, M1, M2) [[1 0 0 0 0]', [0 1 0 0 0]', [0 0 1 0 0]']';
 
-l = 1.0; % Wheelbase length
-w = 0.5; % Distance between wheels
-M = 1;
-M1 = M/2;
-M2 = M/2;
 validateFcns(nlobj, zeros(5, 1), zeros(2, 1), [], {l, M1, M2});
-dscale = 8; % used by se3_spline to define "curvyness" of generated reference splines
 
 nlopt = nlmpcmoveopt;
 nlopt.Parameters = {l, M1, M2};
