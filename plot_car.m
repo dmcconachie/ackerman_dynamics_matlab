@@ -24,7 +24,7 @@ line([lf(1) rf(1)], [lf(2) rf(2)], 'color', 'r');
 
 offset_w = 0.5 * w;
 offset_l_rear = 0;
-offset_l_front = 1;
+offset_l_front = l;
 
 wheel_rear_l = [x; y] + rot * [ offset_l_rear;  offset_w];
 wheel_rear_r = [x; y] + rot * [ offset_l_rear; -offset_w];
