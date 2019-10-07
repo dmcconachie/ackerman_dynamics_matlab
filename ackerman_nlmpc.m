@@ -24,7 +24,7 @@ dscale = 8; % used by se3_spline to define "curvyness" of generated reference sp
 M = 1;
 M1 = M/2;
 M2 = M/2;
-duration = 4;
+duration = 1;
 
 nx = 5; % State dimension
 ny = 3; % Output dimension
@@ -59,13 +59,13 @@ nlobj.States(4).Max = deg2rad(75);
 
 nlobj.States(5).Name = 'v';
 nlobj.States(5).Units = 'Meters / Second';
-nlobj.States(5).Min = -1.0;
+nlobj.States(5).Min = 0.0;
 nlobj.States(5).Max = 20.0;
 
 nlobj.ManipulatedVariables(1).Name = 'F';
 nlobj.ManipulatedVariables(1).Units = 'Newtons';
-nlobj.ManipulatedVariables(1).Min = -40;
-nlobj.ManipulatedVariables(1).Max = 10;
+nlobj.ManipulatedVariables(1).Min = -80;
+nlobj.ManipulatedVariables(1).Max = 20;
 
 nlobj.ManipulatedVariables(2).Name = 'Steering Change';
 nlobj.ManipulatedVariables(2).Units = 'Radians / Second';
@@ -93,7 +93,7 @@ ex1.med.x0 = [ex1.y0; 0; med];
 ex1.fast.x0 = [ex1.y0; 0; fast];
 
 ex1.ref_color = 'k';
-ex1.slow.color = 'y';
+ex1.slow.color = 'b';
 ex1.med.color = 'm';
 ex1.fast.color = 'r';
 
@@ -112,7 +112,7 @@ ex2.med.x0 = [ex2.y0; 0; med];
 ex2.fast.x0 = [ex2.y0; 0; fast];
 
 ex2.ref_color = 'k';
-ex2.slow.color = 'y';
+ex2.slow.color = 'b';
 ex2.med.color = 'm';
 ex2.fast.color = 'r';
 
@@ -171,6 +171,15 @@ subplot(2, 3, 6);
 plot_car_traj(ex2.fast.x_history, l, w, ex2.fast.color);
 title(sprintf('Fast start v = %g', ex2.fast.x0(end)))
 drawnow
+%%
+fprintf('Experiment 1 final velocities\n');
+fprintf('Slow:   %g\n', ex1.slow.x_history(5, end));
+fprintf('Medium: %g\n', ex1.med.x_history(5, end));
+fprintf('Fast:   %g\n', ex1.fast.x_history(5, end));
+fprintf('\nExperiment 2 final velocities\n');
+fprintf('Slow:   %g\n', ex2.slow.x_history(5, end));
+fprintf('Medium: %g\n', ex2.med.x_history(5, end));
+fprintf('Fast:   %g\n', ex2.fast.x_history(5, end));
 %%
 figure(2); clf;
 play_trajectories(ex1, ex2);
