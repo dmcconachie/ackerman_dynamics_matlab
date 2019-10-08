@@ -24,13 +24,11 @@ dscale = 8; % used by se3_spline to define "curvyness" of generated reference sp
 M = 1;
 M1 = M/2;
 M2 = M/2;
-duration = 1;
 
 nx = 5; % State dimension
 ny = 3; % Output dimension
 nu = 2; % Control dimension
 Ts = 0.05; % Sample time
-Tsteps = ceil(duration / Ts);
 mpc_horizon = 10;
 
 nlobj = nlmpc(nx, ny, nu);
@@ -92,10 +90,15 @@ ex1.slow.x0 = [ex1.y0; 0; slow];
 ex1.med.x0 = [ex1.y0; 0; med];
 ex1.fast.x0 = [ex1.y0; 0; fast];
 
+fprintf(sprintf('Ex 1 Start, Goal dist: %g\n', se3_dist(ex1.y0, ex1.y1)))
+
 ex1.ref_color = 'k';
 ex1.slow.color = 'b';
 ex1.med.color = 'm';
 ex1.fast.color = 'r';
+
+duration = se3_dist(ex1.y0, ex1.y1)/ 5.0;
+Tsteps = ceil(duration / Ts);
 
 ex1.y_ref = se3_spline(ex1.y0, ex1.y1, Tsteps, dscale);
 ex1.lifted_y_ref = [ex1.y_ref; zeros(2, Tsteps + 1)];
@@ -111,10 +114,15 @@ ex2.slow.x0 = [ex2.y0; 0; slow];
 ex2.med.x0 = [ex2.y0; 0; med];
 ex2.fast.x0 = [ex2.y0; 0; fast];
 
+fprintf(sprintf('Ex 2 Start, Goal dist: %g\n', se3_dist(ex2.y0, ex2.y1)))
+
 ex2.ref_color = 'k';
 ex2.slow.color = 'b';
 ex2.med.color = 'm';
 ex2.fast.color = 'r';
+
+duration = se3_dist(ex2.y0, ex2.y1)/ 5.0;
+Tsteps = ceil(duration / Ts);
 
 ex2.y_ref = se3_spline(ex2.y0, ex2.y1, Tsteps, dscale);
 ex2.lifted_y_ref = [ex2.y_ref; zeros(2, Tsteps + 1)];
@@ -125,7 +133,7 @@ plot_env(ex1, ex2);
 
 %% Ex1 - Slow
 [ex1.slow.x_history, ex1.slow.u_history] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, ex1.slow.x0, ex1.y1, Tsteps, l, M1, M2, dscale);
+    ackerman_segment_nlmpc(nlobj, nlopt, ex1.slow.x0, ex1.y1, l, M1, M2, dscale);
 %%
 subplot(2, 3, 1);
 plot_car_traj(ex1.slow.x_history, l, w, ex1.slow.color);
@@ -133,7 +141,7 @@ title(sprintf('Slow start v = %g', ex1.slow.x0(end)))
 drawnow
 %% Ex1 - Medium
 [ex1.med.x_history, ex1.med.u_history] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, ex1.med.x0, ex1.y1, Tsteps, l, M1, M2, dscale);
+    ackerman_segment_nlmpc(nlobj, nlopt, ex1.med.x0, ex1.y1, l, M1, M2, dscale);
 %%
 subplot(2, 3, 2);
 plot_car_traj(ex1.med.x_history, l, w, ex1.med.color);
@@ -141,7 +149,7 @@ title(sprintf('Medium start v = %g', ex1.med.x0(end)))
 drawnow
 %% Ex1 - Fast
 [ex1.fast.x_history, ex1.fast.u_history] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, ex1.fast.x0, ex1.y1, Tsteps, l, M1, M2, dscale);
+    ackerman_segment_nlmpc(nlobj, nlopt, ex1.fast.x0, ex1.y1, l, M1, M2, dscale);
 %%
 subplot(2, 3, 3);
 plot_car_traj(ex1.fast.x_history, l, w, ex1.fast.color);
@@ -149,7 +157,7 @@ title(sprintf('Fast start v = %g', ex1.fast.x0(end)))
 drawnow
 %% Ex2 - Slow
 [ex2.slow.x_history, ex2.slow.u_history] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, ex2.slow.x0, ex2.y1, Tsteps, l, M1, M2, dscale);
+    ackerman_segment_nlmpc(nlobj, nlopt, ex2.slow.x0, ex2.y1, l, M1, M2, dscale);
 %%
 subplot(2, 3, 4);
 plot_car_traj(ex2.slow.x_history, l, w, ex2.slow.color);
@@ -157,7 +165,7 @@ title(sprintf('Slow start v = %g', ex2.slow.x0(end)))
 drawnow
 %% Ex2 - Medium
 [ex2.med.x_history, ex2.med.u_history] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, ex2.med.x0, ex2.y1, Tsteps, l, M1, M2, dscale);
+    ackerman_segment_nlmpc(nlobj, nlopt, ex2.med.x0, ex2.y1, l, M1, M2, dscale);
 %%
 subplot(2, 3, 5);
 plot_car_traj(ex2.med.x_history, l, w, ex2.med.color);
@@ -165,7 +173,7 @@ title(sprintf('Medium start v = %g', ex2.med.x0(end)))
 drawnow
 %% Ex2 - Fast
 [ex2.fast.x_history, ex2.fast.u_history] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, ex2.fast.x0, ex2.y1, Tsteps, l, M1, M2, dscale);
+    ackerman_segment_nlmpc(nlobj, nlopt, ex2.fast.x0, ex2.y1, l, M1, M2, dscale);
 %%
 subplot(2, 3, 6);
 plot_car_traj(ex2.fast.x_history, l, w, ex2.fast.color);

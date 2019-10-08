@@ -1,11 +1,10 @@
-function [x_history, u_history, y_ref] = ...
-    ackerman_segment_nlmpc(nlobj, nlopt, x0, y_target, Tsteps, l, M1, M2, dscale)
+function [x_history, u_history, y_ref] = ackerman_segment_nlmpc(car, x0, y_target)
 
-Ts = nlobj.Ts;
-prediction_horizon = nlobj.PredictionHorizon;
-control_horizon = nlobj.ControlHorizon;
+Ts = car.nlobj.Ts;
+dist = se3_dist(x0(1:3), y_target);
+duration = dist / car.se3_speed;
+Tsteps = ceil(duration / Ts);
 
-t = 0:Ts:Ts*Tsteps;
 x_history = zeros(5, Tsteps + 1);
 x_history(:, 1) = x0;
 u_history = zeros(2, Tsteps);
@@ -13,8 +12,7 @@ u_prev = [0; 0];
 
 % Create reference targets along the line segment to avoid overshooting
 % http://www.cs.cornell.edu/courses/cs4620/2013fa/lectures/16spline-curves.pdf
-y_ref = se3_spline(x0(1:3), y_target, Tsteps, dscale)';
-y_ref = y_ref(2:end, :);
+y_ref = se3_spline(x0(1:3), y_target, Tsteps, car.dscale)';
 
 % dist = se3_dist(x0(1:3), y_target);
 % delta = se3_delta(x0(1:3), y_target);
@@ -31,23 +29,24 @@ for k = 1:Tsteps
     % Update the nlobj to not predict past the total number of steps
     % i.e, allow 'residual' velocity
     steps_left = Tsteps - k + 1;
-    ph = min(prediction_horizon, steps_left);
-    ch = min(control_horizon, steps_left);    
-    nlobj.PredictionHorizon = ph;
-    nlobj.ControlHorizon = ch;
-    if size(nlopt.MV0, 1) > nlobj.ControlHorizon
-        nlopt.MV0 = nlopt.MV0(1:nlobj.ControlHorizon, :);
+    mpc_horizon = min(car.mpc_horizon, steps_left);
+    car.nlobj.PredictionHorizon = mpc_horizon;
+    car.nlobj.ControlHorizon = mpc_horizon;
+    if size(car.nlopt.MV0, 1) > mpc_horizon
+        car.nlopt.MV0 = car.nlopt.MV0(1:mpc_horizon, :);
     end
         
-    [uk, nlopt, info] = nlmpcmove(nlobj, xk, u_prev, y_ref(k:k+ph-1, :), [], nlopt);
+    [uk, car.nlopt, info] = nlmpcmove(car.nlobj, xk, u_prev, y_ref(k+1:k+mpc_horizon, :), [], car.nlopt);
     u_history(:, k) = uk;
     u_prev = uk;
     
-    ODEFUN = @(t, xk) ackerman_dynamics(xk, uk, l, M1, M2);
+    ODEFUN = @(t, xk) ackerman_dynamics(xk, uk, car.length, car.M1, car.M2);
     [TOUT, YOUT] = ode45(ODEFUN,[0 Ts], xk');
     x_history(:, k+1) = YOUT(end, :);
     waitbar(k/Tsteps, hbar);
 end
 close(hbar)
+
+y_ref = y_ref';
 
 end

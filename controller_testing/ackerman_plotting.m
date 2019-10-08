@@ -12,29 +12,29 @@ dphi = control_history(2, :);
 figure(1)
 clf;
 subplot(3, 2, 1);
-plot(t, [x; y]');
+patch(t, [x; y]');
 xlabel('Time')
 ylabel('Position (m)')
 legend('X', 'Y')
 
 subplot(3, 2, 2);
-plot(t, [theta; phi]');
+patch(t, [theta; phi]');
 xlabel('Time')
 ylabel('Orientation (rad)');
 legend('Theta', 'Phi');
 
 subplot(3, 2, 3);
-plot(t, v);
+patch(t, v);
 xlabel('Time');
 ylabel('Velocity (m/s)');
 
 subplot(3, 2, 5);
-plot(t(2:end), F);
+patch(t(2:end), F);
 xlabel('Time');
 ylabel('Input Force (N)');
 
 subplot(3, 2, 6);
-plot(t(2:end), dphi);
+patch(t(2:end), dphi);
 xlabel('Time');
 ylabel('Steering Angle Change (rad/s)');
 
