@@ -1,4 +1,8 @@
-function [x_history, u_history, y_ref] = ackerman_segment_nlmpc(car, x0, y_target)
+function [x_history, u_history, y_ref] = ackerman_segment_nlmpc(car, x0, y_target, waitbar_enabled)
+
+if nargin < 4
+    waitbar_enabled = false;
+end
 
 Ts = car.nlobj.Ts;
 dist = se3_dist(x0(1:3), y_target);
@@ -22,7 +26,9 @@ y_ref = se3_spline(x0(1:3), y_target, Tsteps, car.dscale)';
 % y_ref = ones(Tsteps + 1, 1) * x0(1:3)' + [dx', dy', dtheta'];
 % y_ref = y_ref(2:end, :);
 
-hbar = waitbar(0,'Simulation Progress');
+if waitbar_enabled
+    hbar = waitbar(0,'Simulation Progress');
+end
 for k = 1:Tsteps
     
     xk = x_history(:, k);
@@ -43,9 +49,13 @@ for k = 1:Tsteps
     ODEFUN = @(t, xk) ackerman_dynamics(xk, uk, car.length, car.M1, car.M2);
     [TOUT, YOUT] = ode45(ODEFUN,[0 Ts], xk');
     x_history(:, k+1) = YOUT(end, :);
-    waitbar(k/Tsteps, hbar);
+    if waitbar_enabled
+        waitbar(k/Tsteps, hbar);
+    end
 end
-close(hbar)
+if waitbar_enabled
+    close(hbar)
+end
 
 y_ref = y_ref';
 

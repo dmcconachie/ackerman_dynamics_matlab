@@ -5,7 +5,7 @@ function valid_edges = collision_check_edges(car, obstacles, ...
         plotting_on = false;
     end
 
-    num_waypoints = size(waypoints, 1);
+    num_waypoints = size(waypoints, 2);
     valid_edges = zeros(1, num_waypoints - 1);
 
     assert(isvector(waypoint_traj_indices));

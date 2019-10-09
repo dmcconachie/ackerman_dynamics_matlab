@@ -1,33 +1,28 @@
-function features = generate_features(car, obstacles, waypoints, edges_valid)
+function features = generate_features(car, obstacles, waypoints)
 
 image_size = 64;
 capture_width = 10;
 
-next_feature.start_car = [];
-next_feature.end_car = [];
-next_feature.environment = [];
+feature.start_car = [];
+feature.end_car = [];
+feature.environment = [];
 
-features = [];
+num_edges = size(waypoints, 2) - 1;
+features(1:num_edges) = feature;
 
-for edge_idx = 1:length(edges_valid)
-    valid = edges_valid(edge_idx);
-    start_state = waypoints(edge_idx, :)';
-    end_state = waypoints(edge_idx + 1, :)';
+for edge_idx = 1:num_edges
+    start_state = waypoints(:, edge_idx);
+    end_state = waypoints(:, edge_idx + 1);
     
     center = (start_state(1:2) + end_state(1:2)) / 2;
     linspace_x = linspace(center(1) - capture_width / 2, center(1) + capture_width / 2, image_size);
     linspace_y = linspace(center(2) - capture_width / 2, center(2) + capture_width / 2, image_size);
     [pixels_x, pixels_y] = meshgrid(linspace_x, flip(linspace_y));
         
-    next_feature.start_car = rasterize_car(car, start_state, pixels_x, pixels_y);
-    next_feature.end_car = rasterize_car(car, end_state, pixels_x, pixels_y);
-    next_feature.environment = rasterize_obstacles(obstacles, pixels_x, pixels_y);
+    features(edge_idx).start_car = rasterize_car(car, start_state, pixels_x, pixels_y);
+    features(edge_idx).end_car = rasterize_car(car, end_state, pixels_x, pixels_y);
+    features(edge_idx).environment = rasterize_obstacles(obstacles, pixels_x, pixels_y);
     
-    features = [features, next_feature];
-    
-    if ~valid
-        break
-    end
 end
 
 end
