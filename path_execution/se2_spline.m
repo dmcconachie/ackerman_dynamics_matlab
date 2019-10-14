@@ -1,4 +1,4 @@
-function points = se3_spline(q0, q1, steps, dscale)
+function points = se2_spline(q0, q1, steps, dscale)
 
 % http://www.cs.cornell.edu/courses/cs4620/2013fa/lectures/16spline-curves.pdf
 

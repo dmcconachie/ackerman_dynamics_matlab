@@ -9,10 +9,11 @@ obstacles = to_obstacles(obstacles_file);
 waypoints = load(waypoints_file)';
 
 if plotting_on
+    clf;
     plot_obstacles(obstacles);
     axis square
     hold on
-    plot_waypoints(car, waypoints, 'b')
+    plot_waypoints(car, waypoints, 'b');
 end
 
 x0 = [waypoints(:, 1); 0; 5];
@@ -28,6 +29,13 @@ for idx = 2:num_waypoints
         plot(y_ref(1, :), y_ref(2, :), 'k');
         plot_car_traj(x_history, car.length, car.width, 'r', 4);
     end
+    
+    % Check if the car was forced to e-stop during the segment
+    valid = ~any(collision_check_set(car, obstacles, x_history));
+    if ~valid
+        break
+    end
+    
     x0 = x_history(:, end);
     x_trajectory = [x_trajectory, x_history(:, 2:end)];
     y_trajectory = [y_trajectory, y_ref(:, 2:end)];

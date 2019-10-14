@@ -1,4 +1,8 @@
-function car = make_car()
+function car = make_car(validate)
+
+if nargin < 1
+    validate = true;
+end
 
 length = 1.0; % Wheelbase length
 width = 0.5;  % Distance between wheels
@@ -21,8 +25,8 @@ car.Ts = 0.05; % Sample time
 car.default_action_duration = 2;
 car.default_Tsteps = ceil(car.default_action_duration / car.Ts);
 car.mpc_horizon = 10;
-car.se3_speed = 5;
-car.dscale = car.se3_speed; % used by se3_spline to define "curvyness" of generated reference splines
+car.se2_speed = 5;
+car.dscale = car.se2_speed; % used by se2_spline to define "curvyness" of generated reference splines
 
 car.nlobj = nlmpc(nx, ny, nu);
 car.nlobj.Ts = car.Ts;
@@ -64,7 +68,9 @@ car.nlobj.ManipulatedVariables(2).Units = 'Radians / Second';
 car.nlobj.Jacobian.StateFcn = @ackerman_state_jacobian;
 car.nlobj.Jacobian.OutputFcn = @(state, control, length, M1, M2) [[1 0 0 0 0]', [0 1 0 0 0]', [0 0 1 0 0]']';
 
-validateFcns(car.nlobj, zeros(5, 1), zeros(2, 1), [], {length, M1, M2});
+if validate
+    validateFcns(car.nlobj, zeros(5, 1), zeros(2, 1), [], {length, M1, M2});
+end
 
 car.nlopt = nlmpcmoveopt;
 car.nlopt.Parameters = {length, M1, M2};

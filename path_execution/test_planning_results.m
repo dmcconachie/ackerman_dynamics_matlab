@@ -1,32 +1,36 @@
 clc; clear;
-basedir = "/home/dmcconac/Dropbox/car_planning_classification_experiments/planning_logs/";
-outputdir = "/home/dmcconac/Dropbox/car_planning_classification_experiments/planning_logs/parsed_output/";
+basedir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/planning_logs/";
+outputdir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/planning_logs/parsed_output/";
 [~, ~, ~] = mkdir(outputdir);
 files = dir(append(basedir, "*path.csv"));
+filenames = sort({files.name});
+filenames = filenames(1:2);
 
-car = make_car();
-aggregated_transition_distances = [];
-for file = sort({files.name})
+car = make_car(false);
+
+aggregated_transition_distances = cell(2, length(filenames));
+
+tic
+for idx = 1:length(filenames)
+    file = filenames(idx);
     path_file = append(basedir, file{1});
     obstacles_file = append(basedir, file{1}(1:end-8), "obstacles.csv");
-    fprintf("Parsing %s ... ", file{1});
     
     [obstacles, waypoints, waypoint_traj_indices, x_trajectory, u_trajectory, y_trajectory] = ...
         execute_path(car, obstacles_file, path_file, false);
+
+    last_valid_waypoint_idx = find(waypoint_traj_indices ~= 0, 1, 'last');
+    assert(size(x_trajectory, 2) == waypoint_traj_indices(last_valid_waypoint_idx));
     
-    edge_valid = collision_check_edges(car, obstacles, waypoints, waypoint_traj_indices, x_trajectory);
-    last_valid_waypoint_idx = find(edge_valid, 1, 'last') + 1;
-    
-    planned_waypoints = waypoints(:, 1:last_valid_waypoint_idx);
+    executed_waypoints = waypoints(:, 1:last_valid_waypoint_idx);
     executed_states = x_trajectory(:, waypoint_traj_indices(1:last_valid_waypoint_idx));
-    features = generate_features(car, obstacles, planned_waypoints);
-    transition_distances = generate_distances(obstacles, planned_waypoints, executed_states);
-   
-    for idx = 1:length(features)
-        outfile_name = append(outputdir, sprintf("%d.png", size(aggregated_transition_distances, 2) + idx - 1));
-        save_to_file(features(idx), outfile_name);
-    end
-    aggregated_transition_distances = [aggregated_transition_distances, transition_distances];
-    fprintf("total transitions %d\n", size(aggregated_transition_distances, 2));
+    features = generate_features(car, obstacles, executed_waypoints);
+    transition_distances = generate_distances(obstacles, executed_waypoints, executed_states);
+    
+    aggregated_transition_distances(:, idx) = {features, transition_distances};
+
+    fprintf("Parsing %s, path contains %d waypoints, result contains %d valid waypoints\n", ...
+        file{1}(length(basedir):end), length(waypoints), last_valid_waypoint_idx);
 end
-writematrix(aggregated_transition_distances', append(outputdir, "distances.csv"));
+% writematrix(aggregated_transition_distances', append(outputdir, "distances.csv"));
+toc

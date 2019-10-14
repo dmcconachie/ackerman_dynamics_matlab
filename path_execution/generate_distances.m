@@ -12,11 +12,13 @@ num_states = size(executed_states, 2);
 transition_distances = zeros(4, num_states - 1);
 for idx = 1:num_states-1
     % Before Moving
-    transition_distances(1, idx) = se3_dist(planned_waypoints(:, idx), executed_states(1:3, idx));
-    transition_distances(2, idx) = ~obstacle_line_collision(obstacles, planned_waypoints(1:2, idx), executed_states(1:2, idx));
+    se2_pre = se2_dist(planned_waypoints(:, idx), executed_states(1:3, idx));
+    line_pre = ~obstacle_line_collision(obstacles, planned_waypoints(1:2, idx), executed_states(1:2, idx));
     % After Moving
-    transition_distances(3, idx) = se3_dist(planned_waypoints(:, idx + 1), executed_states(1:3, idx +1));
-    transition_distances(4, idx) = ~obstacle_line_collision(obstacles, planned_waypoints(1:2, idx + 1), executed_states(1:2, idx + 1));
+    se2_post = se2_dist(planned_waypoints(:, idx + 1), executed_states(1:3, idx +1));
+    line_post = ~obstacle_line_collision(obstacles, planned_waypoints(1:2, idx + 1), executed_states(1:2, idx + 1));
+    
+    transition_distances(:, idx) = [se2_pre; line_pre; se2_post; line_post];
 end
 
 end
