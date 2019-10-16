@@ -14,9 +14,14 @@ parfor idx = 1:length(filenames)
     file = filenames(idx);
     path_file = append(basedir, file{1});
     obstacles_file = append(basedir, file{1}(1:end-8), "obstacles.csv");
+    trajectory_file = append(basedir, file{1}(1:end-8), "trajectory.mat");
     
     [obstacles, waypoints, waypoint_traj_indices, x_trajectory, u_trajectory, y_trajectory] = ...
         execute_path(car, obstacles_file, path_file, false);
+    parsave(trajectory_file, ...
+        obstacles, waypoints, waypoint_traj_indices, ...
+        x_trajectory, u_trajectory, y_trajectory);
+        
 
     last_valid_waypoint_idx = find(waypoint_traj_indices ~= 0, 1, 'last');
     assert(size(x_trajectory, 2) == waypoint_traj_indices(last_valid_waypoint_idx));
