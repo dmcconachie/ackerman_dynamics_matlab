@@ -39,7 +39,7 @@ parfor idx = 1:length(filenames)
 end
 
 %%
-transition_data = cell(2, length(filenames));
+transition_data = cell(2, length(intermediate_files));
 parfor idx = 1:length(intermediate_files)
     experiment_name = filenames{idx}(1:end-14);
     path_file       = append(basedir,         experiment_name, "path.csv");
