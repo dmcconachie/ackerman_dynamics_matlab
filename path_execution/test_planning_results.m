@@ -33,6 +33,7 @@ parfor idx = 1:length(filenames)
         obstacles, waypoints, waypoint_traj_indices, ...
         x_trajectory, u_trajectory, y_trajectory);
 
+    last_valid_waypoint_idx = find(waypoint_traj_indices ~= 0, 1, 'last');
     fprintf("Parsing %s, path contains %d waypoints, result contains %d valid waypoints\n", ...
         experiment_name(1:end-2), length(waypoints), last_valid_waypoint_idx);
 end
