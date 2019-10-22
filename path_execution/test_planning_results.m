@@ -17,12 +17,12 @@ for idx = 1:length(input_files)
     intermediate_files{idx} = convertStringsToChars(tmpfile);
 end
 already_parsed_flag = ismember(intermediate_files, already_parsed_files);
-filenames = input_files(~already_parsed_flag);
+trajectories_to_generate = input_files(~already_parsed_flag);
 
 %%
 car = make_car(false);
-parfor idx = 1:length(filenames)
-    experiment_name = filenames{idx}(1:end-8);
+parfor idx = 1:length(trajectories_to_generate)
+    experiment_name = trajectories_to_generate{idx}(1:end-8);
     path_file       = append(basedir,         experiment_name, "path.csv");
     obstacles_file  = append(basedir,         experiment_name, "obstacles.csv");
     trajectory_file = append(intermediatedir, experiment_name, "trajectory.mat");
