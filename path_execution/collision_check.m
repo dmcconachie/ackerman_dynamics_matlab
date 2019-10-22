@@ -1,4 +1,4 @@
-function valid = collision_check(car, obstacles, state)
+function collision = collision_check(car, obstacles, state)
 
     car_rect = car_to_rect(car, state);
     valid = true;
@@ -8,5 +8,6 @@ function valid = collision_check(car, obstacles, state)
             break;
         end
     end
+    collision = ~valid;
 
 end

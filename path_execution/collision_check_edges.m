@@ -19,11 +19,11 @@ function valid_edges = collision_check_edges(car, obstacles, ...
         traj_start_idx = waypoint_traj_indices(waypoint_idx - 1);
         traj_end_idx = waypoint_traj_indices(waypoint_idx);
 
-        valid = true;
+        collision = false;
         for traj_idx = traj_start_idx:traj_end_idx
             state = x_trajectory(:, traj_idx);
-            valid = collision_check(car, obstacles, state(1:3));
-            if ~valid
+            collision = collision_check(car, obstacles, state(1:3));
+            if collision
                 if plotting_on
                     plot_car(state(1), state(2), state(3), state(4), car.length, car.width, 'm', 0.2);
                 end
@@ -34,8 +34,8 @@ function valid_edges = collision_check_edges(car, obstacles, ...
                 end
             end
         end
-        valid_edges(waypoint_idx - 1) = valid;
-        if ~valid
+        valid_edges(waypoint_idx - 1) = ~collision;
+        if collision
             break
         end
     end

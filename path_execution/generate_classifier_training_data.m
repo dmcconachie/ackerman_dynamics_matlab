@@ -59,6 +59,7 @@ parfor idx = 1:length(intermediate_files)
 
     transition_data(:, idx) = {features, transition_distances};
 end
+save(append(outputdir, "raw_transition_data.mat"), "transition_data");
 
 %%
 save(append(outputdir, 'transition_data.mat'), 'transition_data');
