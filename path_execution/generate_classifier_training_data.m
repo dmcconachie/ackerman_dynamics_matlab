@@ -20,6 +20,8 @@ already_parsed_flag = ismember(intermediate_files, already_parsed_files);
 trajectories_to_generate = input_files(~already_parsed_flag);
 
 %%
+fprintf("Generating trajectories ...\n");
+tic;
 car = make_car(false);
 parfor idx = 1:length(trajectories_to_generate)
     experiment_name = trajectories_to_generate{idx}(1:end-8);
@@ -37,8 +39,10 @@ parfor idx = 1:length(trajectories_to_generate)
     fprintf("Parsing %s, path contains %d waypoints, result contains %d valid waypoints\n", ...
         experiment_name(1:end-2), length(waypoints), last_valid_waypoint_idx);
 end
+fprintf("Done in %g seconds\n", toc);
 
 %%
+fprintf("Generating transition data ...\n");
 transition_data = cell(2, length(intermediate_files));
 parfor idx = 1:length(intermediate_files)
     experiment_name = intermediate_files{idx}(1:end-14);
@@ -60,16 +64,16 @@ parfor idx = 1:length(intermediate_files)
     transition_data(:, idx) = {features, transition_distances};
 end
 save(append(outputdir, "raw_transition_data.mat"), "transition_data");
+fprintf("Done in %g seconds\n", toc);
 
 %%
-save(append(outputdir, 'transition_data.mat'), 'transition_data');
+fprintf("Writing transition data to image files ...\n");
 aggregated_transitions = [transition_data{1, :}];
 aggregated_transition_distances = [transition_data{2, :}];
-clearvars transition_data
 
 parfor idx = 1:length(aggregated_transitions)
     outfile_name = append(outputdir, sprintf("%d.png", idx - 1));    
     save_to_file(aggregated_transitions(idx), outfile_name);
 end
-
 writematrix(aggregated_transition_distances', append(outputdir, "distances.csv"));
+fprintf("Done in %g seconds\n", toc);

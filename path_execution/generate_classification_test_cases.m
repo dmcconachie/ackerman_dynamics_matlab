@@ -91,7 +91,7 @@ while true
     transition_data(:, test_idx) = {features, transition_distances};
     
     figure(2);
-    subplot(4, 4, test_idx); hold off
+    subplot(4, 4, test_idx);
     image(:, :, 1) = double(features.environment);
     image(:, :, 2) = double(features.start_car);
     image(:, :, 3) = double(features.end_car);
