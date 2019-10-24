@@ -10,7 +10,6 @@ input_files = sort({input_files.name});
 already_parsed_files = dir(append(intermediatedir, "*.mat"));
 already_parsed_files = sort({already_parsed_files.name});
 
-%%
 intermediate_files = cell(size(input_files));
 for idx = 1:length(input_files)
     tmpfile = append(input_files{idx}(1:end-8), "trajectory.mat");
@@ -20,8 +19,7 @@ already_parsed_flag = ismember(intermediate_files, already_parsed_files);
 trajectories_to_generate = input_files(~already_parsed_flag);
 
 %%
-fprintf("Generating trajectories ...\n");
-tic;
+fprintf("Generating trajectories ...\n"); tic;
 car = make_car(false);
 parfor idx = 1:length(trajectories_to_generate)
     experiment_name = trajectories_to_generate{idx}(1:end-8);
@@ -42,8 +40,11 @@ end
 fprintf("Done in %g seconds\n", toc);
 
 %%
-fprintf("Generating transition data ...\n");
-transition_data = cell(2, length(intermediate_files));
+fprintf("Generating transition data ...\n"); tic;
+obstacles_data = cell(1, length(intermediate_files));
+waypoint_data = cell(1, length(intermediate_files));
+states_data = cell(1, length(intermediate_files));
+distances = cell(1, length(intermediate_files));
 parfor idx = 1:length(intermediate_files)
     experiment_name = intermediate_files{idx}(1:end-14);
     path_file       = append(basedir,         experiment_name, "path.csv");
@@ -56,24 +57,31 @@ parfor idx = 1:length(intermediate_files)
     last_valid_waypoint_idx = find(waypoint_traj_indices ~= 0, 1, 'last');
     assert(size(x_trajectory, 2) == waypoint_traj_indices(last_valid_waypoint_idx));
 
-    executed_waypoints = waypoints(:, 1:last_valid_waypoint_idx);
-    executed_states = x_trajectory(:, waypoint_traj_indices(1:last_valid_waypoint_idx));
-    features = generate_features(car, obstacles, executed_waypoints);
-    transition_distances = generate_distances(obstacles, executed_waypoints, executed_states);
-
-    transition_data(:, idx) = {features, transition_distances};
+    obstacles_data{idx} = obstacles;
+    waypoint_data{idx} = waypoints(:, 1:last_valid_waypoint_idx);
+    states_data{idx} = x_trajectory(:, waypoint_traj_indices(1:last_valid_waypoint_idx));
+    distances{idx} = generate_distances(obstacles, waypoint_data{idx}, states_data{idx});
 end
-save(append(outputdir, "raw_transition_data.mat"), "transition_data");
+save(append(intermediatedir, "transition_data.mat"), "obstacles_data", "waypoint_data", "states_data", "-v7.3");
+save(append(intermediatedir, "distances.mat"), "distances", "-v7.3");
+writematrix([distances{:}]', append(outputdir, "distances.csv"));
+fprintf("Done in %g seconds\n", toc);
+
+%% Regenerate features from cached data
+% load(append(intermediatedir, "transition_data.mat"), "obstacles_data", "waypoint_data");
+fprintf("Generating transition features ...\n"); tic;
+template_features = generate_features(car, obstacles_data{1}, waypoint_data{1});
+features = repmat({template_features}, 1, length(obstacles_data));
+for idx = 1:length(obstacles_data)
+    features{idx} = generate_features(car, obstacles_data{idx}, waypoint_data{idx});
+end
 fprintf("Done in %g seconds\n", toc);
 
 %%
-fprintf("Writing transition data to image files ...\n");
-aggregated_transitions = [transition_data{1, :}];
-aggregated_transition_distances = [transition_data{2, :}];
-
-parfor idx = 1:length(aggregated_transitions)
+fprintf("Writing transition data to image files ...\n"); tic;
+aggregated_features = [features{:}];
+parfor idx = 1:length(aggregated_features)
     outfile_name = append(outputdir, sprintf("%d.png", idx - 1));    
-    save_to_file(aggregated_transitions(idx), outfile_name);
+    save_to_file(aggregated_features(idx), outfile_name);
 end
-writematrix(aggregated_transition_distances', append(outputdir, "distances.csv"));
 fprintf("Done in %g seconds\n", toc);

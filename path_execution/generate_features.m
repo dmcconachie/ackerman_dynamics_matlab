@@ -3,8 +3,10 @@ function features = generate_features(car, obstacles, waypoints)
 image_size = 64;
 capture_width = 10;
 
-feature.start_car = [];
-feature.end_car = [];
+feature.start_car.box = [];
+feature.start_car.arrow = [];
+feature.end_car.box = [];
+feature.end_car.arrow = [];
 feature.environment = [];
 
 num_edges = size(waypoints, 2) - 1;
@@ -28,9 +30,11 @@ end
 end
 
 function rasterized = rasterize_car(car, state, pixels_x, pixels_y)
-    rect = car_to_rect(car, state);
-    inside_fn = @(x, y) point_inside_rect(rect, [x; y]);
-    rasterized = arrayfun(inside_fn, pixels_x, pixels_y);
+%     rect = car_to_rect(car, state);
+%     inside_fn = @(x, y) point_inside_rect(rect, [x; y]);
+%     rasterized.box = arrayfun(inside_fn, pixels_x, pixels_y);
+%     rasterized.arrow = rasterize_arrow(car, state, pixels_x, pixels_y);
+    rasterized.triangle = rasterize_triangle(car, state, pixels_x, pixels_y);
 end
 
 function rasterized = rasterize_obstacles(obstacles, pixels_x, pixels_y)
@@ -40,4 +44,35 @@ function rasterized = rasterize_obstacles(obstacles, pixels_x, pixels_y)
         rasterized_obs = arrayfun(inside_fn, pixels_x, pixels_y);
         rasterized = rasterized | rasterized_obs;
     end
+end
+
+function rasterized = rasterize_triangle(car, state, pixels_x, pixels_y)
+
+    points = car_to_triangle(car, state);
+    inside = @(x, y) point_inside_triangle(points, [x; y]);
+    rasterized = arrayfun(inside, pixels_x, pixels_y);
+
+end
+
+function rasterized = rasterize_arrow(car, state, pixels_x, pixels_y)
+    points = car_to_arrow(car, state, deg2rad(30), car.width);
+    rasterized = rasterize_segment(points(:, 1), points(:, 2), pixels_x, pixels_y) | ...
+                 rasterize_segment(points(:, 2), points(:, 3), pixels_x, pixels_y) | ...
+                 rasterize_segment(points(:, 2), points(:, 4), pixels_x, pixels_y);
+end
+
+function rasterized = rasterize_segment(p1, p2, pixels_x, pixels_y)
+    segment_length = norm(p2 - p1);
+    a = p2(2) - p1(2);
+    b = p2(1) - p1(1);
+    c = p2(1)*p1(2) - p2(2)*p1(1);
+
+    dist_p1 = pdist2(p1', [pixels_x(:), pixels_y(:)])';
+    dist_p2 = pdist2(p2', [pixels_x(:), pixels_y(:)])';
+    dist_line = abs(a * pixels_x(:) - b * pixels_y(:) + c) / segment_length;
+
+    pixel_size = abs(pixels_y(1) - pixels_y(2));
+    rasterized = reshape(dist_p1 <= segment_length & ...
+                         dist_p2 <= segment_length & ...
+                         dist_line < pixel_size/2, size(pixels_x));
 end

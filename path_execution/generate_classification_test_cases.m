@@ -37,6 +37,7 @@ end
 
 %%
 figure(2);
+clearvars image
 transition_data = cell(2, n_test);
 for idx = 1:n_test
     waypoints = [x0(1:3), x_test(1:3, idx)];
@@ -48,10 +49,7 @@ for idx = 1:n_test
     transition_data(:, idx) = {features, transition_distances};
     
     subplot(4, 4, idx);
-    image(:, :, 1) = double(features.environment);
-    image(:, :, 2) = double(features.start_car);
-    image(:, :, 3) = double(features.end_car);
-    imshow(image);
+    imshow(features_to_image(features));
     title(sprintf("Index: %d", idx));
 end
 
@@ -92,9 +90,9 @@ while true
     
     figure(2);
     subplot(4, 4, test_idx);
-    image(:, :, 1) = double(features.environment);
-    image(:, :, 2) = double(features.start_car);
-    image(:, :, 3) = double(features.end_car);
+    image(:, :, 1) = double(features.environment | features.start_car.arrow | features.end_car.arrow);
+    image(:, :, 2) = double(features.start_car.box);
+    image(:, :, 3) = double(features.end_car.box);
     imshow(image)
     title(sprintf("Index: %d", test_idx));
     drawnow
