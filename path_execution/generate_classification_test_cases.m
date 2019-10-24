@@ -43,10 +43,11 @@ for idx = 1:n_test
     waypoints = [x0(1:3), x_test(1:3, idx)];
     states = [x0, x_test(:, idx)];
     
+    tic;
     features = generate_features(car, obstacles, waypoints);
     transition_distances = generate_distances(obstacles, waypoints, states);
-
     transition_data(:, idx) = {features, transition_distances};
+    toc;
     
     subplot(4, 4, idx);
     imshow(features_to_image(features));
