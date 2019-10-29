@@ -19,7 +19,7 @@ w = 0.5; % Distance between wheels
 slow = 1; % m/s (3.6 kph, 2.240 mph)
 med = 7; % m/s (27 kph, 16.777 mph)
 fast = 15; % m/s (54 kph, 33.554 mph)
-dscale = 8; % used by se3_spline to define "curvyness" of generated reference splines
+dscale = 5; % used by se2_spline to define "curvyness" of generated reference splines
 
 M = 1;
 M1 = M/2;
@@ -90,17 +90,17 @@ ex1.slow.x0 = [ex1.y0; 0; slow];
 ex1.med.x0 = [ex1.y0; 0; med];
 ex1.fast.x0 = [ex1.y0; 0; fast];
 
-fprintf(sprintf('Ex 1 Start, Goal dist: %g\n', se3_dist(ex1.y0, ex1.y1)))
+fprintf(sprintf('Ex 1 Start, Goal dist: %g\n', se2_dist(ex1.y0, ex1.y1)))
 
 ex1.ref_color = 'k';
 ex1.slow.color = 'b';
 ex1.med.color = 'm';
 ex1.fast.color = 'r';
 
-duration = se3_dist(ex1.y0, ex1.y1)/ 5.0;
+duration = se2_dist(ex1.y0, ex1.y1)/ 5.0;
 Tsteps = ceil(duration / Ts);
 
-ex1.y_ref = se3_spline(ex1.y0, ex1.y1, Tsteps, dscale);
+ex1.y_ref = se2_spline(ex1.y0, ex1.y1, Tsteps, dscale);
 ex1.lifted_y_ref = [ex1.y_ref; zeros(2, Tsteps + 1)];
 
 %% Experiment 2 Setup
@@ -114,17 +114,17 @@ ex2.slow.x0 = [ex2.y0; 0; slow];
 ex2.med.x0 = [ex2.y0; 0; med];
 ex2.fast.x0 = [ex2.y0; 0; fast];
 
-fprintf(sprintf('Ex 2 Start, Goal dist: %g\n', se3_dist(ex2.y0, ex2.y1)))
+fprintf(sprintf('Ex 2 Start, Goal dist: %g\n', se2_dist(ex2.y0, ex2.y1)))
 
 ex2.ref_color = 'k';
 ex2.slow.color = 'b';
 ex2.med.color = 'm';
 ex2.fast.color = 'r';
 
-duration = se3_dist(ex2.y0, ex2.y1)/ 5.0;
+duration = se2_dist(ex2.y0, ex2.y1)/ 5.0;
 Tsteps = ceil(duration / Ts);
 
-ex2.y_ref = se3_spline(ex2.y0, ex2.y1, Tsteps, dscale);
+ex2.y_ref = se2_spline(ex2.y0, ex2.y1, Tsteps, dscale);
 ex2.lifted_y_ref = [ex2.y_ref; zeros(2, Tsteps + 1)];
 
 %%

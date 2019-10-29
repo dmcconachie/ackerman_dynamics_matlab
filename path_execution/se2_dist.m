@@ -1,7 +1,7 @@
 function dist = se2_dist(q1, q2, lambda)
 
 if nargin < 3
-    lambda = 1;
+    lambda = 5;
 end
 
 delta = se2_delta(q1, q2);

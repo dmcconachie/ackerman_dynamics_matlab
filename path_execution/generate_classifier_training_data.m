@@ -1,4 +1,5 @@
 clc; clear;
+fprintf("Loading file lists ...\n"); tic;
 basedir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/planning_logs/";
 intermediatedir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/planning_logs/intermediate_output/";
 outputdir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/planning_logs/parsed_output/";
@@ -17,6 +18,7 @@ for idx = 1:length(input_files)
 end
 already_parsed_flag = ismember(intermediate_files, already_parsed_files);
 trajectories_to_generate = input_files(~already_parsed_flag);
+fprintf("Done in %g seconds\n", toc);
 
 %%
 fprintf("Generating trajectories ...\n"); tic;
@@ -72,18 +74,27 @@ fprintf("Done in %g seconds\n", toc);
 %% Regenerate features from cached data
 % load(append(intermediatedir, "transition_data.mat"), "obstacles_data", "waypoint_data");
 fprintf("Generating transition features ...\n"); tic;
-template_features = generate_features(car, obstacles_data{1}, waypoint_data{1});
-features = repmat({template_features}, 1, length(obstacles_data));
-parfor idx = 1:length(obstacles_data)
-    features{idx} = generate_features(car, obstacles_data{idx}, waypoint_data{idx});
+% template_features = generate_features(car, obstacles_data{1}, waypoint_data{1});
+% features = repmat({template_features}, 1, length(obstacles_data));
+features_data = cell(1, length(intermediate_files));
+features_data_images = cell(1, length(intermediate_files));
+parfor idx = 1:length(intermediate_files)
+    features = generate_features(car, obstacles_data{idx}, waypoint_data{idx});
+    features_data(idx) = {[features.relative]};
+    features_data_images(idx) = {features};
 end
+aggregated_features = [features_data{:}];
+features_matrix = [[aggregated_features.end_state];
+                   [aggregated_features.start_dist_and_bearing];
+                   [aggregated_features.end_dist_and_bearing]];
+writematrix(features_matrix', append(outputdir, "features.csv"));
 fprintf("Done in %g seconds\n", toc);
 
 %%
 fprintf("Writing transition data to image files ...\n"); tic;
-aggregated_features = [features{:}];
-parfor idx = 1:length(aggregated_features)
+aggregated_features_images = [features_data_images{:}];
+parfor idx = 1:length(aggregated_features_images)
     outfile_name = append(outputdir, sprintf("%d.png", idx - 1));    
-    save_to_file(aggregated_features(idx), outfile_name);
+    save_to_file(aggregated_features_images(idx), outfile_name);
 end
 fprintf("Done in %g seconds\n", toc);

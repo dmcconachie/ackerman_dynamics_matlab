@@ -5,7 +5,7 @@ Ts = nlobj.Ts;
 prediction_horizon = nlobj.PredictionHorizon;
 control_horizon = nlobj.ControlHorizon;
 
-dist = se3_dist(x0(1:3), y_target);
+dist = se2_dist(x0(1:3), y_target);
 duration = dist / 5.0;
 Tsteps = ceil(duration / Ts);
 
@@ -17,7 +17,7 @@ u_prev = [0; 0];
 
 % Create reference targets along the line segment to avoid overshooting
 % http://www.cs.cornell.edu/courses/cs4620/2013fa/lectures/16spline-curves.pdf
-y_ref = se3_spline(x0(1:3), y_target, Tsteps, dscale)';
+y_ref = se2_spline(x0(1:3), y_target, Tsteps, dscale)';
 y_ref = y_ref(2:end, :);
 
 % dist = se3_dist(x0(1:3), y_target);

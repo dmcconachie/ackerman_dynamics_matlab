@@ -2,6 +2,7 @@ clc; clear;
 car = make_car();
 % obstacles_file = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/planning_logs/problem_result__2019-10-15_16:47:25.314__obstacles.csv";
 % obstacles = to_obstacles(obstacles_file);
+outputdir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/classifier_figure_tests/";
 
 obstacles.center = [5.5; 4.5];
 obstacles.theta = 0;
@@ -36,22 +37,32 @@ for idx=1:n_test
 end
 
 %%
+clc
 figure(2);
 clearvars image
-transition_data = cell(2, n_test);
+% distances_data = cell(1, n_test);
+features_data = cell(1, n_test);
 for idx = 1:n_test
     waypoints = [x0(1:3), x_test(1:3, idx)];
     states = [x0, x_test(:, idx)];
     
-    tic;
-    features = generate_features(car, obstacles, waypoints);
-    transition_distances = generate_distances(obstacles, waypoints, states);
-    transition_data(:, idx) = {features, transition_distances};
-    toc;
+    se2_dist(waypoints(:, 1), waypoints(:, 2))
     
+    features = generate_features(car, obstacles, waypoints);
+    outfile_name = append(outputdir, sprintf("%d.png", idx - 1));    
+    save_to_file(features, outfile_name);
+
+    features_data(idx) = {features.relative};
+
+    figure(2);
     subplot(4, 4, idx);
     imshow(features_to_image(features));
     title(sprintf("Index: %d", idx));
+
+    figure(1);
+    X = [states(1, 2), states(1, 2) + features.end_dist_and_bearing(1) * cos(features.end_dist_and_bearing(2))];
+    Y = [states(2, 2), states(2, 2) + features.end_dist_and_bearing(1) * sin(features.end_dist_and_bearing(2))];
+    line(X, Y);
 end
 
 %%
@@ -85,26 +96,30 @@ while true
     states = [x0, x_new];
     
     features = generate_features(car, obstacles, waypoints);
-    transition_distances = generate_distances(obstacles, waypoints, states);
-
-    transition_data(:, test_idx) = {features, transition_distances};
+%     distances = generate_distances(obstacles, waypoints, states);
+    features_data(idx) = {features.relative};
+%     distances_data(idx) = {distances};
     
-    figure(2);
-    subplot(4, 4, test_idx);
-    image(:, :, 1) = double(features.environment | features.start_car.arrow | features.end_car.arrow);
-    image(:, :, 2) = double(features.start_car.box);
-    image(:, :, 3) = double(features.end_car.box);
-    imshow(image)
-    title(sprintf("Index: %d", test_idx));
-    drawnow
+%     figure(2);
+%     subplot(4, 4, test_idx);
+%     image(:, :, 1) = double(features.environment | features.start_car.arrow | features.end_car.arrow);
+%     image(:, :, 2) = double(features.start_car.box);
+%     image(:, :, 3) = double(features.end_car.box);
+%     imshow(image)
+%     title(sprintf("Index: %d", test_idx));
+%     drawnow
 end
 
 %%
-aggregated_transitions = [transition_data{1, :}];
-aggregated_transition_distances = [transition_data{2, :}];
-outputdir = "/mnt/big_narstie_data/dmcconac/car_planning_classification_experiments/classifier_figure_tests/";
+aggregated_features = [features_data{:}];
 [~, ~, ~] = mkdir(outputdir);
-for idx = 1:n_test
-    outfile_name = append(outputdir, sprintf("%d.png", idx - 1));    
-    save_to_file(aggregated_transitions(idx), outfile_name);
-end
+features_matrix = [[aggregated_features.end_state];
+                   [aggregated_features.start_dist_and_bearing];
+                   [aggregated_features.end_dist_and_bearing]];
+writematrix(features_matrix', append(outputdir, "features.csv"));
+
+%%
+% for idx = 1:n_test
+%     outfile_name = append(outputdir, sprintf("%d.png", idx - 1));    
+%     save_to_file(aggregated_transitions(idx), outfile_name);
+% end
