@@ -29,8 +29,9 @@ parfor idx = 1:length(trajectories_to_generate)
     obstacles_file  = append(basedir,         experiment_name, "obstacles.csv");
     trajectory_file = append(intermediatedir, experiment_name, "trajectory.mat");
     
+    plot_traj = false;
     [obstacles, waypoints, waypoint_traj_indices, x_trajectory, u_trajectory, y_trajectory] = ...
-        execute_path(car, obstacles_file, path_file, false);
+        execute_path(car, obstacles_file, path_file, plot_traj);
     parsave(trajectory_file, ...
         obstacles, waypoints, waypoint_traj_indices, ...
         x_trajectory, u_trajectory, y_trajectory);
@@ -83,6 +84,10 @@ parfor idx = 1:length(intermediate_files)
     features_data(idx) = {[features.relative]};
     features_data_images(idx) = {features};
 end
+fprintf("Done in %g seconds\n", toc);
+fprintf("Saving data to file ...\n"); tic;
+save(append(intermediatedir, "features_data.mat"), "features_data", "-v7.3");
+save(append(intermediatedir, "features_data_images.mat"), "features_data_images", "-v7.3");
 aggregated_features = [features_data{:}];
 features_matrix = [[aggregated_features.end_state];
                    [aggregated_features.start_dist_and_bearing];
@@ -98,3 +103,42 @@ parfor idx = 1:length(aggregated_features_images)
     save_to_file(aggregated_features_images(idx), outfile_name);
 end
 fprintf("Done in %g seconds\n", toc);
+
+%%
+transitions_per_example = cellfun('length', features_data);
+transitions_per_example_cumulative = cumsum([0, transitions_per_example]);
+
+transitions_per_example_cumulative(1:3)
+global_to_indiv = @(idx) deal(find(transitions_per_example_cumulative >= idx, 1) - 1, ...
+                              idx - transitions_per_example_cumulative(find(transitions_per_example_cumulative >= idx, 1) - 1));
+
+%%
+%{
+matlab_indicies = [3728 34330 43896];
+for idx = 1:length(matlab_indicies)
+    matlab_idx = matlab_indicies(idx);
+    [test_idx, trans_idx] = global_to_indiv(matlab_idx);
+%     features_matrix(:, matlab_idx)
+%     [features_data{test_idx}(trans_idx).end_state; 
+%      features_data{test_idx}(trans_idx).start_dist_and_bearing;
+%      features_data{test_idx}(trans_idx).end_dist_and_bearing]
+    figure(1)
+    subplot(length(matlab_indicies), 1, idx);
+    imshow(features_to_image(features_data_images{test_idx}(trans_idx)));
+    
+    experiment_name = input_files{test_idx}(1:end-8);
+    path_file       = append(basedir,         experiment_name, "path.csv");
+    obstacles_file  = append(basedir,         experiment_name, "obstacles.csv");
+
+    figure(2);
+    plot_traj = true;
+    [obstacles, waypoints, waypoint_traj_indices, x_trajectory, u_trajectory, y_trajectory] = ...
+        execute_path(car, obstacles_file, path_file, plot_traj);
+    
+    last_valid_waypoint_idx = find(waypoint_traj_indices ~= 0, 1, 'last');
+    fprintf("Parsing %s, path contains %d waypoints, result contains %d valid waypoints\n", ...
+        experiment_name(1:end-2), length(waypoints), last_valid_waypoint_idx);
+    
+    pause
+end
+%}

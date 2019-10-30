@@ -16,7 +16,7 @@ if plotting_on
     plot_waypoints(car, waypoints, 'b');
 end
 
-x0 = [waypoints(:, 1); 0; 5];
+x0 = [waypoints(:, 1); 0; car.speed];
 x_trajectory = x0;
 y_trajectory = x0(1:3);
 u_trajectory = [];
